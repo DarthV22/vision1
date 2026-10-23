@@ -1,0 +1,8 @@
+numpy>=1.26.4,<3
+opencv-python>=4.10,<5
+# MediaPipe also depends on this distribution; keep both cv2 builds on OpenCV 4.
+opencv-contrib-python>=4.10,<5
+# Qt 6.12 moved package bootstrap files out of Essentials on Windows.
+PySide6-Essentials>=6.7,<6.11
+ultralytics>=8.3,<8.4
+mediapipe>=0.10.30,<0.11

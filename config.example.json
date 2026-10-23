@@ -1,0 +1,19 @@
+{
+  "camera": 0,
+  "width": 1280,
+  "height": 720,
+  "processing_width": 960,
+  "inference_size": 416,
+  "detection_stride": 2,
+  "confidence": 0.45,
+  "device": "cpu",
+  "model_dir": "models",
+  "detection": false,
+  "hands": false,
+  "flow": false,
+  "grid": false,
+  "boxes": true,
+  "trajectories": true,
+  "vectors": true,
+  "gesture_control": false
+}
