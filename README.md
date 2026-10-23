@@ -112,7 +112,7 @@ GitHub Actions runs these checks on Windows, Linux and macOS with Python 3.12. T
 
 Development verification on Windows with Python 3.14.6: all 28 tests, Qt Essentials 6.10.3 desktop rendering, compilation and `pip check` passed. Separate real-model CPU checks detected a bus and people in Ultralytics' bundled sample and processed a blank frame with MediaPipe. The complete worker also processed live HP webcam frames at 1280x720 capture resolution with detection, hand landmarks and optical flow enabled, then stopped and released the camera cleanly. GPU acceleration remains unverified.
 
-If the camera will not open, close other camera applications and check OS camera permissions. On Linux, check access to `/dev/video*`; desktop OpenCV/Qt may also need system OpenGL/XCB libraries. If `python` opens the Windows Store, install Python or select its actual interpreter in VS Code. If a package has no wheel for your platform/Python combination, use a supported 64-bit Python release rather than attempting to compile the entire stack.
+If the camera will not open, close other camera applications and check OS camera permissions. On Linux, check access to `/dev/video*`; on Ubuntu/Debian, install Qt's graphics libraries with `sudo apt-get install libegl1 libopengl0` if they are missing. Desktop X11 sessions may also need XCB libraries. If `python` opens the Windows Store, install Python or select its actual interpreter in VS Code. If a package has no wheel for your platform/Python combination, use a supported 64-bit Python release rather than attempting to compile the entire stack.
 
 ## Upstream references
 
