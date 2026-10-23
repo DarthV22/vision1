@@ -277,6 +277,7 @@ class MainWindow(QMainWindow):
         for size in sorted({320, 416, 640, self.config.inference_size}):
             self.inference_size.addItem(str(size), size)
         self.inference_size.setCurrentIndex(self.inference_size.findData(self.config.inference_size))
+        self.inference_size.setToolTip("YOLO input size. Larger sizes can find smaller objects but require more processing.")
         self.stride = QSpinBox()
         self.stride.setRange(1, 10)
         self.stride.setValue(self.config.detection_stride)

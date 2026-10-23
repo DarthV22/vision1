@@ -3,6 +3,7 @@
 from dataclasses import replace
 import os
 from pathlib import Path
+from types import SimpleNamespace
 from time import monotonic, sleep
 import unittest
 from unittest.mock import patch
@@ -18,6 +19,7 @@ from vision1.config import Config
 from vision1.engine import VisionWorker
 from vision1.gui import MainWindow
 from vision1.motion import OpticalFlow
+from vision1.models import ObjectDetector
 from vision1.geometry import Box
 from vision1.hands import Hand
 from vision1.tracking import Detection
@@ -63,6 +65,23 @@ class FakeHands:
 
     def close(self):
         pass
+
+
+class DeviceTests(unittest.TestCase):
+    def test_cpu_only_torch_reports_actionable_cuda_error(self):
+        torch = SimpleNamespace(version=SimpleNamespace(cuda=None))
+        with patch.dict("sys.modules", {"torch": torch}):
+            with self.assertRaisesRegex(RuntimeError, "CPU-only PyTorch"):
+                ObjectDetector(Path("unused.pt"), "cuda:0", 320)
+
+    def test_unavailable_cuda_reports_driver_error(self):
+        torch = SimpleNamespace(
+            version=SimpleNamespace(cuda="12.8"),
+            cuda=SimpleNamespace(is_available=lambda: False),
+        )
+        with patch.dict("sys.modules", {"torch": torch}):
+            with self.assertRaisesRegex(RuntimeError, "NVIDIA GPU and driver"):
+                ObjectDetector(Path("unused.pt"), "cuda:0", 320)
 
 
 class MotionTests(unittest.TestCase):

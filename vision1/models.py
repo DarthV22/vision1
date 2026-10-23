@@ -56,6 +56,20 @@ def ensure_model(
 
 class ObjectDetector:
     def __init__(self, model_path: Path, device: str, size: int) -> None:
+        if device.lower().startswith("cuda"):
+            import torch
+
+            if torch.version.cuda is None:
+                raise RuntimeError(
+                    "CUDA requires a CUDA-enabled PyTorch installation; this environment "
+                    "has CPU-only PyTorch. Select cpu, or install a compatible CUDA build "
+                    "from pytorch.org/get-started/locally"
+                )
+            if not torch.cuda.is_available():
+                raise RuntimeError(
+                    "PyTorch cannot access CUDA. Check that a supported NVIDIA GPU "
+                    "and driver are available, or select cpu"
+                )
         # Assets are managed above; inference needs no online service or probes.
         cache = model_path.parent / ".ultralytics"
         cache.mkdir(parents=True, exist_ok=True)

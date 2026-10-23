@@ -61,6 +61,24 @@ The example lists all supported keys. Unknown keys, wrong types and invalid rang
 
 CPU is the default. Set the YOLO device to `cuda:0` or `mps` only with compatible hardware and an appropriate PyTorch installation. Hand landmarks and optical flow use the CPU. An unsupported device produces a feature error rather than silently reporting GPU acceleration.
 
+| Performance control | Effect |
+| --- | --- |
+| Working width | Maximum width used by the whole processing pipeline. Lower values reduce work and image detail; all pixel coordinates and speeds refer to this resized image. Smaller camera images are never enlarged. |
+| YOLO image size | Detector input size: 320 is faster, 416 is the default, 640 retains more detail for small objects at greater cost. This is independent of the working width. |
+| Detect every | Run detection once per N processed frames. 1 updates every frame; 2 halves the detection frequency. Boxes hold their last measured positions between detections; larger values can lose IDs during movement. Hands and flow still run each processed frame. |
+| YOLO device | `cpu` uses the processor; `cuda:0` requests the first NVIDIA GPU; `mps` requests Apple's Metal backend on compatible Macs. This affects YOLO only; ID association runs on the CPU. |
+
+Stop the stream before changing these controls, then start it again. Camera resolution controls capture detail and bandwidth before the working resize. Detection confidence is a live threshold: higher values reject more uncertain detections, while lower values can increase false positives. Disabling unused vision modules saves processing; hiding overlays only reduces drawing work.
+
+To diagnose CUDA in the same environment used to launch the app:
+
+```powershell
+.\.venv\Scripts\python.exe -c "import torch; print(torch.__version__); print(torch.version.cuda); print(torch.cuda.is_available())"
+nvidia-smi
+```
+
+A version ending in `+cpu` with `torch.version.cuda` equal to `None` means PyTorch cannot run CUDA even when an NVIDIA GPU is installed. Use the [official PyTorch installation selector](https://pytorch.org/get-started/locally/) to choose a CUDA build compatible with your Python and driver, installing through the same environment's Python. Restart the app after installation. Selecting `cuda:0` does not install GPU support. Detection and IDs share one feature toggle, so a detector device error disables both; this does not mean the ID tracker requires CUDA.
+
 For weaker machines, choose a 640-pixel working width, a 320-pixel YOLO size, detect every 2–3 processed frames, and enable only needed modules. The working width is a maximum: small images are never enlarged. More frame skipping holds measured boxes longer and can reduce tracking quality. Model imports and assets are loaded on demand; capture and output each retain only one frame. UI presentation polls at approximately 33 Hz and telemetry at approximately 7 Hz, independent of inference speed.
 
 ## Architecture
