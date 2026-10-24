@@ -6,7 +6,7 @@
   "inference_size": 416,
   "detection_stride": 2,
   "confidence": 0.45,
-  "device": "cpu",
+  "device": "auto",
   "model_dir": "models",
   "detection": false,
   "hands": false,

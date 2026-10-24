@@ -229,7 +229,7 @@ class MainWindow(QMainWindow):
         inner.addWidget(label("02  /  VISION MODULES", "section"))
         self.toggles: dict[str, QCheckBox] = {}
         for key, title, tip in (
-            ("detection", "Object detection + IDs", "YOLO11 nano. Downloads a model on first use. CPU by default."),
+            ("detection", "Object detection + IDs", "YOLO11 nano. Downloads a model on first use. Automatically uses CUDA when available."),
             ("hands", "Hand landmarks", "MediaPipe Tasks, up to two hands. Downloads a model on first use."),
             ("flow", "Optical flow", "Sparse Lucas-Kanade flow; includes motion caused by the camera."),
             ("gesture_control", "Gesture interactions", "Enable hand landmarks. Hold a pinch for 0.35 s to select; open palm to clear. One hand only."),
@@ -283,10 +283,10 @@ class MainWindow(QMainWindow):
         self.stride.setValue(self.config.detection_stride)
         self.stride.setToolTip("Detect every N processed frames. Boxes hold their last measured position between detections.")
         self.device = QComboBox()
-        for device in dict.fromkeys(("cpu", "cuda:0", "mps", self.config.device)):
+        for device in dict.fromkeys(("auto", "cpu", "cuda:0", "mps", self.config.device)):
             self.device.addItem(device, device)
         self.device.setCurrentText(self.config.device)
-        self.device.setToolTip("YOLO device. CUDA/MPS require compatible hardware and a supporting PyTorch installation.")
+        self.device.setToolTip("Auto selects CUDA when available, otherwise CPU. CUDA/MPS require compatible hardware and PyTorch.")
         form.addRow("Working width", self.processing_width)
         form.addRow("YOLO image size", self.inference_size)
         form.addRow("Detect every", self.stride)

@@ -1,0 +1,5 @@
+# Optional Windows/Linux NVIDIA setup; install requirements.txt first.
+# Official matched CUDA 12.8 wheels, verified on Windows / Python 3.14 / RTX 2050.
+--index-url https://download.pytorch.org/whl/cu128
+torch==2.11.0+cu128
+torchvision==0.26.0+cu128

@@ -120,7 +120,7 @@ class VisionWorker(QThread):
                             if self.isInterruptionRequested():
                                 break
                             detector = ObjectDetector(path, config.device, config.inference_size)
-                            self.status.emit("YOLO ready | click a detection to select a target")
+                            self.status.emit(f"YOLO ready on {detector.device} | click a detection to select a target")
                         if frame_number % config.detection_stride == 0 or not last_detection_enabled:
                             tracks = tracker.update(detector.detect(frame, config.confidence), packet.timestamp)
                         else:

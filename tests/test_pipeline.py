@@ -2,11 +2,12 @@
 
 from dataclasses import replace
 import os
+import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 from time import monotonic, sleep
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
@@ -50,7 +51,7 @@ class FakeCapture:
 
 class FakeDetector:
     def __init__(self, *_):
-        pass
+        self.device = "cpu"
 
     def detect(self, frame, confidence):
         return [Detection(Box(20, 30, 120, 130), 0, "person", 0.9)]
@@ -68,6 +69,19 @@ class FakeHands:
 
 
 class DeviceTests(unittest.TestCase):
+    def test_auto_selects_cuda_or_cpu(self):
+        for available, expected in ((True, "cuda:0"), (False, "cpu")):
+            with self.subTest(available=available), tempfile.TemporaryDirectory() as directory:
+                torch = SimpleNamespace(
+                    version=SimpleNamespace(cuda="12.8" if available else None),
+                    cuda=SimpleNamespace(is_available=lambda: available),
+                )
+                with patch.dict("sys.modules", {
+                    "torch": torch, "ultralytics": SimpleNamespace(YOLO=Mock()),
+                }), patch.dict(os.environ):
+                    detector = ObjectDetector(Path(directory) / "unused.pt", "auto", 320)
+                    self.assertEqual(detector.device, expected)
+
     def test_cpu_only_torch_reports_actionable_cuda_error(self):
         torch = SimpleNamespace(version=SimpleNamespace(cuda=None))
         with patch.dict("sys.modules", {"torch": torch}):

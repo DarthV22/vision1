@@ -56,6 +56,10 @@ def ensure_model(
 
 class ObjectDetector:
     def __init__(self, model_path: Path, device: str, size: int) -> None:
+        if device == "auto":
+            import torch
+
+            device = "cuda:0" if torch.cuda.is_available() else "cpu"
         if device.lower().startswith("cuda"):
             import torch
 

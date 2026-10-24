@@ -14,7 +14,7 @@ class Config:
     inference_size: int = 416
     detection_stride: int = 2
     confidence: float = 0.45
-    device: str = "cpu"
+    device: str = "auto"
     model_dir: str = "models"
     detection: bool = False
     hands: bool = False

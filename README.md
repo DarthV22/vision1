@@ -59,14 +59,14 @@ python -m vision1 --debug
 
 The example lists all supported keys. Unknown keys, wrong types and invalid ranges are rejected. Paths are relative to the working directory. UI settings last for the current process; edit your JSON file for persistent defaults.
 
-CPU is the default. Set the YOLO device to `cuda:0` or `mps` only with compatible hardware and an appropriate PyTorch installation. Hand landmarks and optical flow use the CPU. An unsupported device produces a feature error rather than silently reporting GPU acceleration.
+The default YOLO device is `auto`: it selects `cuda:0` when PyTorch can access CUDA, otherwise `cpu`. Explicit `cuda:0` and `mps` selections require compatible hardware and an appropriate PyTorch installation. Hand landmarks and optical flow use the CPU. An unsupported explicit device produces a feature error rather than silently reporting GPU acceleration.
 
 | Performance control | Effect |
 | --- | --- |
 | Working width | Maximum width used by the whole processing pipeline. Lower values reduce work and image detail; all pixel coordinates and speeds refer to this resized image. Smaller camera images are never enlarged. |
 | YOLO image size | Detector input size: 320 is faster, 416 is the default, 640 retains more detail for small objects at greater cost. This is independent of the working width. |
 | Detect every | Run detection once per N processed frames. 1 updates every frame; 2 halves the detection frequency. Boxes hold their last measured positions between detections; larger values can lose IDs during movement. Hands and flow still run each processed frame. |
-| YOLO device | `cpu` uses the processor; `cuda:0` requests the first NVIDIA GPU; `mps` requests Apple's Metal backend on compatible Macs. This affects YOLO only; ID association runs on the CPU. |
+| YOLO device | `auto` selects available CUDA or CPU; `cpu` uses the processor; `cuda:0` requests the first NVIDIA GPU; `mps` requests Apple's Metal backend on compatible Macs. This affects YOLO only; ID association runs on the CPU. |
 
 Stop the stream before changing these controls, then start it again. Camera resolution controls capture detail and bandwidth before the working resize. Detection confidence is a live threshold: higher values reject more uncertain detections, while lower values can increase false positives. Disabling unused vision modules saves processing; hiding overlays only reduces drawing work.
 
@@ -78,6 +78,17 @@ nvidia-smi
 ```
 
 A version ending in `+cpu` with `torch.version.cuda` equal to `None` means PyTorch cannot run CUDA even when an NVIDIA GPU is installed. Use the [official PyTorch installation selector](https://pytorch.org/get-started/locally/) to choose a CUDA build compatible with your Python and driver, installing through the same environment's Python. Restart the app after installation. Selecting `cuda:0` does not install GPU support. Detection and IDs share one feature toggle, so a detector device error disables both; this does not mean the ID tracker requires CUDA.
+
+For the verified Windows/Python 3.14 NVIDIA setup, install the optional matched CUDA 12.8 wheels after the base requirements:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-cuda.txt
+.\.venv\Scripts\python.exe -m pip check
+```
+
+This replaces CPU-only PyTorch and torchvision. CUDA wheels take several gigabytes; a compatible NVIDIA driver is required. GPU acceleration can improve detection throughput but does not improve model accuracy or guarantee lower total power use. First inference includes model loading and GPU warmup; compare performance after warmup. The default keeps full precision.
+
+CUDA verification on an RTX 2050 (4 GB), NVIDIA driver 592.82, Windows and Python 3.14.6 used PyTorch 2.11.0+cu128 and torchvision 0.26.0+cu128. At YOLO size 416, three warmup runs followed by 20 timed detections plus tracking on the bundled bus image gave median CPU times of 66–102 ms and GPU times of 15–17 ms across two runs. Both detected the bus and three people, with persistent tracker observations. These are detector benchmarks, not whole-app FPS guarantees. A live GUI run processed 20 webcam frames with CUDA detection, hand processing, optical flow, gesture control and overlays enabled at 1280x720 capture / 960x540 working size, then released the camera and closed cleanly. No hands were visible in that run; live gesture quality remains a manual check.
 
 For weaker machines, choose a 640-pixel working width, a 320-pixel YOLO size, detect every 2–3 processed frames, and enable only needed modules. The working width is a maximum: small images are never enlarged. More frame skipping holds measured boxes longer and can reduce tracking quality. Model imports and assets are loaded on demand; capture and output each retain only one frame. UI presentation polls at approximately 33 Hz and telemetry at approximately 7 Hz, independent of inference speed.
 
@@ -128,7 +139,7 @@ The tests cover geometry, time-based velocity, viewport mapping, class-aware one
 
 GitHub Actions runs these checks on Windows, Linux and macOS with Python 3.12. The repository contains source, tests and configuration; virtual environments, model weights, caches and generated output remain local and are excluded from Git.
 
-Development verification on Windows with Python 3.14.6: all 28 tests, Qt Essentials 6.10.3 desktop rendering, compilation and `pip check` passed. Separate real-model CPU checks detected a bus and people in Ultralytics' bundled sample and processed a blank frame with MediaPipe. The complete worker also processed live HP webcam frames at 1280x720 capture resolution with detection, hand landmarks and optical flow enabled, then stopped and released the camera cleanly. GPU acceleration remains unverified.
+Development verification on Windows with Python 3.14.6: all 31 tests, Qt Essentials desktop rendering, compilation and `pip check` passed. Tests include automatic CUDA/CPU selection and actionable CUDA failure messages. Separate real-model checks and live CUDA verification are described above.
 
 If the camera will not open, close other camera applications and check OS camera permissions. On Linux, check access to `/dev/video*`; on Ubuntu/Debian, install Qt's graphics libraries with `sudo apt-get install libegl1 libopengl0` if they are missing. Desktop X11 sessions may also need XCB libraries. If `python` opens the Windows Store, install Python or select its actual interpreter in VS Code. If a package has no wheel for your platform/Python combination, use a supported 64-bit Python release rather than attempting to compile the entire stack.
 
